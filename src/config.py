@@ -39,6 +39,18 @@ class Settings:
     signature_type: int = _i("SIGNATURE_TYPE", 0)
     funder_address: str = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
 
+    # Pre-derived L2 API creds (optional; otherwise derived from the key at runtime).
+    api_key: str = os.getenv("POLYMARKET_API_KEY", "")
+    api_secret: str = os.getenv("POLYMARKET_API_SECRET", "")
+    api_passphrase: str = os.getenv("POLYMARKET_API_PASSPHRASE", "")
+
+    # --- server-side signing (keep key/secret off the client/.exe) ---
+    # If set, the bot delegates order signing to this backend instead of
+    # holding the private key locally.
+    remote_signer_url: str = os.getenv("REMOTE_SIGNER_URL", "")
+    # Shared secret between bot and signer backend (X-Signer-Token header).
+    signer_auth_token: str = os.getenv("SIGNER_AUTH_TOKEN", "")
+
     # --- gamma / market discovery ---
     gamma_host: str = os.getenv("GAMMA_HOST", "https://gamma-api.polymarket.com")
     # Slug template for the recurring 5-min BTC market; {ts} = window start unix ts.

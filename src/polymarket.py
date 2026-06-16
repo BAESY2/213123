@@ -122,7 +122,7 @@ class ClobBroker:
 
     def _build_client(self):
         from py_clob_client.client import ClobClient
-        from py_clob_client.clob_types import ApiCreds  # noqa: F401
+        from py_clob_client.clob_types import ApiCreds
 
         if not settings.private_key:
             raise RuntimeError("POLYMARKET_PRIVATE_KEY required for live trading")
@@ -138,8 +138,17 @@ class ClobBroker:
                 kwargs["funder"] = settings.funder_address
 
         client = ClobClient(**kwargs)
-        # Derive/refresh L2 API credentials for order signing.
-        client.set_api_creds(client.create_or_derive_api_creds())
+        # Use pre-derived L2 creds if supplied (api_key/secret/passphrase),
+        # else derive them from the private key (L1 -> L2).
+        if settings.api_key and settings.api_secret and settings.api_passphrase:
+            creds = ApiCreds(
+                api_key=settings.api_key,
+                api_secret=settings.api_secret,
+                api_passphrase=settings.api_passphrase,
+            )
+        else:
+            creds = client.create_or_derive_api_creds()
+        client.set_api_creds(creds)
         log.info("CLOB client ready (host=%s)", settings.clob_host)
         return client
 

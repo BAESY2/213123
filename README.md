@@ -74,6 +74,38 @@ SESSION_MINUTES=180         # 3시간 후 자동 종료
 
 ---
 
+## 서버측 요청 서명 (키를 exe에 넣지 마세요)
+
+폴리마켓 문서의 핵심 지침: **"API secret을 클라이언트 코드에 노출하지 말고, 인증
+요청은 백엔드에서 서명하라."** exe에 키/시크릿을 박으면 추출당해 지갑이 털립니다.
+
+- **L1 (개인키 서명)**: EIP-712로 주문 페이로드 서명, L2 자격증명 생성.
+- **L2 (API키/HMAC)**: `apiKey/secret/passphrase`로 HMAC-SHA256 요청 서명.
+  헤더: `POLY_ADDRESS, POLY_SIGNATURE, POLY_TIMESTAMP, POLY_API_KEY, POLY_PASSPHRASE`.
+  구현은 `src/signing.py` (`build_hmac_signature`, `build_l2_headers`) — py-clob-client와
+  동일 스킴(`message = timestamp+method+path+body`, body 따옴표 정규화)을 테스트로 검증.
+
+### 권장 구성 (배포 시)
+키는 **서버에만** 두고, 봇/exe는 키 없이 주문만 위임합니다:
+```
+[bot / btc5m-bot.exe]  --(REMOTE_SIGNER_URL, X-Signer-Token)-->  [signer 백엔드(키 보관)]  --> Polymarket CLOB
+```
+- 서버 실행:
+  ```bash
+  pip install flask
+  set SIGNER_AUTH_TOKEN=<공유시크릿>
+  set POLYMARKET_PRIVATE_KEY=0x...
+  python -m src.signer_server      # 127.0.0.1:8787
+  ```
+- 봇 `.env`:
+  ```ini
+  ENABLE_LIVE=true
+  REMOTE_SIGNER_URL=http://<서버주소>:8787
+  SIGNER_AUTH_TOKEN=<공유시크릿>
+  # 이 경우 봇에는 PRIVATE_KEY/API_SECRET 불필요
+  ```
+- 단일 PC에서만 쓰면 `REMOTE_SIGNER_URL`을 비워두면 로컬 서명으로 동작합니다.
+
 ## 전략 (둘 다 결합)
 
 `src/strategy.py` — 플러그인 구조:
