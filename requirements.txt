@@ -1,0 +1,8 @@
+# Polymarket BTC 5-min trading bot dependencies
+py-clob-client>=0.17.0     # Official Polymarket CLOB client
+requests>=2.31.0           # HTTP for price feed & Gamma API
+python-dotenv>=1.0.0       # Load .env config
+websocket-client>=1.7.0    # (optional) live price/orderbook streaming
+
+# Dev / test
+pytest>=8.0.0

@@ -1,0 +1,19 @@
+# Secrets / config
+.env
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Logs / data
+logs/
+*.log
+data/*.csv
+data/*.json
+
+# OS
+.DS_Store

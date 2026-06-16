@@ -1,0 +1,45 @@
+name: Build Windows EXE
+
+# Builds a standalone btc5m-bot.exe on a Windows runner and uploads it as an
+# artifact. Run it from the GitHub "Actions" tab (Run workflow), then download
+# the "btc5m-bot-windows" artifact -- no Python needed on your machine.
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Build exe
+        run: pyinstaller btc5m-bot.spec
+
+      - name: Bundle .env.example next to exe
+        run: copy .env.example dist\.env.example
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc5m-bot-windows
+          path: |
+            dist/btc5m-bot.exe
+            dist/.env.example
+
+      - name: Attach exe to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/btc5m-bot.exe
